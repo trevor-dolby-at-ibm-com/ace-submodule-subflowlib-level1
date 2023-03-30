@@ -1,0 +1,19 @@
+BROKER SCHEMA SubflowLibLevel1
+
+
+CREATE FUNCTION returnString()
+      RETURNS CHARACTER
+      LANGUAGE JAVA
+      EXTERNAL NAME "ace.submodule.javalib.level1.DemoClass.returnString";
+     
+CREATE COMPUTE MODULE AddHTTPHeader_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		SET OutputRoot.Properties = InputProperties;
+		SET OutputRoot.HTTPReplyHeader.DemoHeader = returnString();
+		SET OutputRoot.XMLNSC = InputRoot.XMLNSC;
+		
+		RETURN TRUE;
+	END;
+
+END MODULE;

@@ -3,7 +3,7 @@
 	<name>SubflowLibLevel1</name>
 	<comment></comment>
 	<projects>
-		<project>SubflowLibLevel1Java</project>
+		<project>JavaLibLevel1</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
