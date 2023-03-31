@@ -42,6 +42,8 @@ public class SubflowLibLevel1_App1_0001_Test {
         // This message matches the message assembly App1 sends into the subflow
         TestMessageAssembly inputMessageAssembly = new TestMessageAssembly();
         InputStream inputMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("App1/HTTPFlow/00000408-6425FEAF-00000001-1.mxml");
+        // Resource files sometimes get flattened into the top-level directory during the build . . .  
+        if ( inputMessage == null ) inputMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("00000408-6425FEAF-00000001-1.mxml");
         inputMessageAssembly.buildFromRecordedMessageAssembly(inputMessage);
 
         // Call the message flow node with the Message Assembly
@@ -56,6 +58,8 @@ public class SubflowLibLevel1_App1_0001_Test {
         // This message matches the message assembly App1 received from the subflow 
         TestMessageAssembly expectedMessageAssembly = new TestMessageAssembly();
         InputStream expectedMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("App1/HTTPFlow/00000408-6425FEAF-00000001-4.mxml");
+        // Resource files sometimes get flattened into the top-level directory during the build . . .  
+        if ( expectedMessage == null ) expectedMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("00000408-6425FEAF-00000001-4.mxml");
         expectedMessageAssembly.buildFromRecordedMessageAssembly(expectedMessage);
         
         // Assert that the actual message assembly matches the expected message assembly
