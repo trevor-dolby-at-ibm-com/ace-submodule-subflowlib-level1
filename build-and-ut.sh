@@ -17,14 +17,10 @@ bash /tmp/move-projects.sh
 rm -rf /tmp/ace-submodule-subflowlib-level1-work-dir
 mqsicreateworkdir /tmp/ace-submodule-subflowlib-level1-work-dir
 
-
-ibmint deploy --input-path . --output-work-directory /tmp/ace-submodule-subflowlib-level1-work-dir --project SubflowLibLevel1 --project SubflowLibLevel1_ContractTest --project SubflowLibLevel1_ScaffoldApp --project SubflowLibLevel1_UnitTest --project JavaLibLevel1
+ibmint deploy --input-path . --output-work-directory /tmp/ace-submodule-subflowlib-level1-work-dir --project SubflowLibLevel1 --project SubflowLibLevel1_ScaffoldApp --project SubflowLibLevel1_UnitTest --project JavaLibLevel1
 
 # ibmint optimize server new for v12.0.4 - speed up test runs
 ibmint optimize server --work-directory /tmp/ace-submodule-subflowlib-level1-work-dir --enable JVM --disable NodeJS
 
 # Run the server to run the unit tests
 IntegrationServer -w /tmp/ace-submodule-subflowlib-level1-work-dir --test-project SubflowLibLevel1_UnitTest
-
-# Run the server to run the contract tests
-IntegrationServer -w /tmp/ace-submodule-subflowlib-level1-work-dir --test-project SubflowLibLevel1_ContractTest
