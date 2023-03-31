@@ -26,10 +26,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        # This option causes the submodules to be pulled in
-        with:
-          submodules: 'true'
-          
+        # This option causes the submodules to be pulled in, but fails with 
+        # Error: Input 'submodules' not supported when falling back to download using the GitHub REST API. 
+        #with:
+        #  submodules: 'true'
+
+      - name: git submodule update
+        shell: bash
+        run: |
+          git submodule update --remote --merge --recursive
+
       - name: Build the application and test it
         shell: bash
         run: |
