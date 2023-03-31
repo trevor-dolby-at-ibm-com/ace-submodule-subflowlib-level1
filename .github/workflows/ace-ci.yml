@@ -34,6 +34,7 @@ jobs:
       - name: git submodule update
         shell: bash
         run: |
+          apk add git
           git submodule update --remote --merge --recursive
 
       - name: Build the application and test it
