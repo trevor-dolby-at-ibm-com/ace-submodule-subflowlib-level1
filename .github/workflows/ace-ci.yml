@@ -26,6 +26,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+        # This option causes the submodules to be pulled in
+        with:
+          submodules: 'true'
           
       - name: Build the application and test it
         shell: bash
