@@ -3,6 +3,14 @@
 ACE submodule subflow library level1, providing a shared libary to the
 main application and relying on a Java submodule.
 
+This is a mid-level library in a hierarchy of repositories:
+
+![ace-submodule-example-layout](files/ace-submodule-example-layout.png)
+
+App library: https://github.com/trevor-dolby-at-ibm-com/ace-submodule-app1
+
+Java library: https://github.com/trevor-dolby-at-ibm-com/ace-submodule-javalib-level1
+
 Originally created for a [blog post](https://community.ibm.com/community/user/integration/blogs/trevor-dolby/2023/04/03/automated-multi-repo-app-connect-enterprise-ace-ba).
 
 ## Tests
@@ -38,13 +46,14 @@ Update submodule with `git submodule update --remote --merge --recursive`
 ## Toolkit
 
 When importing this repo into the toolkit, the "Clone submodules" and "Import all
-existing Eclipse projects after clone finishes" boxes should be selected:
+existing Eclipse projects after clone finishes" boxes should be selected (shown 
+here for the parent application):
 
 ![Toolkit import](files/ace-submodule-app-import.png)
 
 After that has completed, all the projects should appear as usual, with the test
 projects able to run successfully and development proceeding as normal.
 
-## GitHub Actions
+## GitHub Action
 
 Runs the build and test scripts automatically on pull requests.
