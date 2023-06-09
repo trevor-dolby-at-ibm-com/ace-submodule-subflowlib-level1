@@ -1,19 +1,28 @@
 package test;
 
-import org.hamcrest.Matchers;
+import static com.ibm.integration.test.v1.Matchers.equalsMessage;
+import static com.ibm.integration.test.v1.Matchers.terminalPropagateCountIs;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.ibm.integration.test.v1.NodeSpy;
 import com.ibm.integration.test.v1.SpyObjectReference;
 import com.ibm.integration.test.v1.TestMessageAssembly;
 import com.ibm.integration.test.v1.TestSetup;
 import com.ibm.integration.test.v1.exception.TestException;
-
-import static com.ibm.integration.test.v1.Matchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.io.InputStream;
 
 public class SubflowLibLevel1_App1_0001_Test {
 
@@ -28,9 +37,105 @@ public class SubflowLibLevel1_App1_0001_Test {
 		TestSetup.restoreAllMocks();
 	}
 
-	@Test
-	public void SubflowLibLevel1_ScaffoldApp_TestFlow_AddHTTPHeader_TestCase_001() throws TestException {
+	/**
+	 * Scan the test project "resources" directory for pairs of files that
+	 * represent tests to be run. The expected structure is 
+	 * 
+	 * resources
+	 *   AppName
+	 *     FlowName
+	 *       request[optional].mxml
+	 *       reply[optional].mxml
+	 * 
+	 * where the [optional] part of the name is ignored, but would normally 
+	 * consist of a recorded message ID or other information about where the
+	 * message originated.
+	 * 
+	 * These files are passed back to the JUnit runner and then used to create
+	 * the actual test configurations, with each Argument object in the list
+	 * being one test.
+	 * 
+	 * @return a list of arguments with application/flow/request/reply fields
+	 * @throws Exception if there are no applications, no flows within an application, or
+	 *                   if a flow has too few or too many messages.
+	 */
+	public static List<Arguments> scanResourcesForTestFiles() throws Exception
+	{
+		List<Arguments> retval = new ArrayList<Arguments>();
+		
+		// Acquire base directory for resource files
+		String serverWorkDir = System.getProperty("broker.workdir");
+		String testProject   = System.getProperty("broker.testProject");
+		Path testProjectResourcesDirectory = Paths.get(serverWorkDir, "run", testProject, "resources");
 
+		// Used for error checking: we need to make sure we don't accidentally return an empty
+		// set of tests that could lead to a test run passing despite not having tested anything!
+		boolean foundAtLeastOneAppDirectory = false;
+		
+		// List directories, each of which should represent a different application
+		for ( File appDirectory : testProjectResourcesDirectory.toFile().listFiles() ) {
+			// Ignore files (might be READMEs and other stuff)
+			if ( appDirectory.isDirectory() ){
+				foundAtLeastOneAppDirectory = true; // Found one
+				// Check the app isn't empty
+				boolean foundAtLeastOneFlowDirectory = false;
+
+				// For each directory, find subdirectories for flows
+				for ( File flowDirectory : appDirectory.listFiles() ) {
+					// Ignore files (might be READMEs and other stuff)
+					if ( flowDirectory.isDirectory() ) {
+						foundAtLeastOneFlowDirectory = true; // Found one
+						// Check for valid data in the flow directory
+						File requestFile = null;
+						File replyFile = null;
+
+						for ( File testFile : flowDirectory.listFiles() ) {
+							String testFileName = testFile.getName();
+							if ( testFileName.startsWith("request") && testFileName.endsWith(".mxml") ) {
+								if ( requestFile != null ){
+									// More than one request!
+									throw new Exception("Application "+appDirectory.getName()+" flow "+flowDirectory.getName()+
+											" contains more than one request file: "+requestFile.getName()+" and "+testFileName);
+								}
+								requestFile = testFile;
+							}
+							if ( testFileName.startsWith("reply") && testFileName.endsWith(".mxml") ) {
+								if ( replyFile != null ) {
+									// More than one reply!
+									throw new Exception("Application "+appDirectory.getName()+" flow "+flowDirectory.getName()+
+											" contains mroe than one reply file: "+replyFile.getName()+" and "+testFileName);
+								}
+								replyFile = testFile;
+							}
+						}
+						if ( ( requestFile == null ) || ( replyFile == null ) )	{
+							// Missing files
+							throw new Exception("Application "+appDirectory.getName()+" flow "+flowDirectory.getName()+
+									" is missing at least one file: request "+requestFile+" reply "+replyFile);							
+						}
+						System.out.println("Found valid files: "+requestFile.getName()+" "+replyFile.getName());
+						//System.out.println("Debug: "+requestFile.getAbsolutePath()+" "+replyFile.getAbsolutePath());
+						
+						// Add to the arguments for the test itself 
+						retval.add(Arguments.of(appDirectory.getName(), flowDirectory.getName(), requestFile, replyFile));
+					}
+				}
+				if ( !foundAtLeastOneFlowDirectory ) {
+					throw new Exception("Application "+appDirectory.getName()+" does not have any flow subdirectories");					
+				}
+			}
+			if ( !foundAtLeastOneAppDirectory )	{
+				throw new Exception("No application directories found");
+			}
+		}
+		return retval;
+	}
+	
+	@ParameterizedTest
+	@MethodSource("scanResourcesForTestFiles")
+	public void SubflowLibLevel1_ScaffoldApp_TestFlow_AddHTTPHeader_TestCase_001(String appName, String flowName, File requestFile, File replyFile) throws TestException, FileNotFoundException {
+		//scanResourcesForTestFiles();
+		
 		// Define the SpyObjectReference
 		SpyObjectReference nodeReference = new SpyObjectReference().application("SubflowLibLevel1_ScaffoldApp")
 				.messageFlow("TestFlow").node("AddHTTPHeader");
@@ -41,9 +146,7 @@ public class SubflowLibLevel1_App1_0001_Test {
         // Declare a new TestMessageAssembly object for the message being sent into the node
         // This message matches the message assembly App1 sends into the subflow
         TestMessageAssembly inputMessageAssembly = new TestMessageAssembly();
-        InputStream inputMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("App1/HTTPFlow/00000408-6425FEAF-00000001-1.mxml");
-        // Resource files sometimes get flattened into the top-level directory during the build . . .  
-        if ( inputMessage == null ) inputMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("00000408-6425FEAF-00000001-1.mxml");
+        InputStream inputMessage = new FileInputStream(requestFile.getAbsolutePath());
         inputMessageAssembly.buildFromRecordedMessageAssembly(inputMessage);
 
         // Call the message flow node with the Message Assembly
@@ -57,9 +160,7 @@ public class SubflowLibLevel1_App1_0001_Test {
         
         // This message matches the message assembly App1 received from the subflow 
         TestMessageAssembly expectedMessageAssembly = new TestMessageAssembly();
-        InputStream expectedMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("App1/HTTPFlow/00000408-6425FEAF-00000001-4.mxml");
-        // Resource files sometimes get flattened into the top-level directory during the build . . .  
-        if ( expectedMessage == null ) expectedMessage = Thread.currentThread().getContextClassLoader().getResourceAsStream("00000408-6425FEAF-00000001-4.mxml");
+        InputStream expectedMessage = new FileInputStream(replyFile.getAbsolutePath());
         expectedMessageAssembly.buildFromRecordedMessageAssembly(expectedMessage);
         
         // Assert that the actual message assembly matches the expected message assembly
