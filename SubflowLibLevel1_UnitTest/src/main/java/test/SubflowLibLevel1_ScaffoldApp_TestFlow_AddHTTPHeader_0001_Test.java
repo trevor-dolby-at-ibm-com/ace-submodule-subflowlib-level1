@@ -34,7 +34,7 @@ public class SubflowLibLevel1_ScaffoldApp_TestFlow_AddHTTPHeader_0001_Test {
 
 		// Define the SpyObjectReference
 		SpyObjectReference nodeReference = new SpyObjectReference().application("SubflowLibLevel1_ScaffoldApp")
-				.messageFlow("TestFlow").node("AddHTTPHeader");
+				.messageFlow("TestFlow").subflowNode("AddHTTPHeader").node("Compute");
 
 		// Initialise a NodeSpy
 		NodeSpy nodeSpy = new NodeSpy(nodeReference);
@@ -46,13 +46,13 @@ public class SubflowLibLevel1_ScaffoldApp_TestFlow_AddHTTPHeader_0001_Test {
         inputMessageAssembly.buildFromRecordedMessageAssembly(inputMessage);
 
         // Call the message flow node with the Message Assembly
-        nodeSpy.evaluate(inputMessageAssembly, true, "Input");
+        nodeSpy.evaluate(inputMessageAssembly, true, "in");
 
         // Assert the terminal propagate count for the message
-        assertThat(nodeSpy, terminalPropagateCountIs("Output", 1));
+        assertThat(nodeSpy, terminalPropagateCountIs("out", 1));
 
         /* Compare Output Message 1 at output terminal out */
-        TestMessageAssembly actualMessageAssembly = nodeSpy.propagatedMessageAssembly("Output", 1);
+        TestMessageAssembly actualMessageAssembly = nodeSpy.propagatedMessageAssembly("out", 1);
 
         /* Not trying to check too much detail */
         assertThat(actualMessageAssembly, hasMessageTreeElement("HTTPReplyHeader.DemoHeader"));
