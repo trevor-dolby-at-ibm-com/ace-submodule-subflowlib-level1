@@ -7,7 +7,7 @@ This is a mid-level library in a hierarchy of repositories:
 
 ![ace-submodule-example-layout](files/ace-submodule-example-layout.png)
 
-App library: https://github.com/trevor-dolby-at-ibm-com/ace-submodule-app1
+App repo: https://github.com/trevor-dolby-at-ibm-com/ace-submodule-app1
 
 Java library: https://github.com/trevor-dolby-at-ibm-com/ace-submodule-javalib-level1
 
